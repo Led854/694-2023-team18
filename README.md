@@ -1,10 +1,14 @@
-# 694DBMS
+# Datastores & Search Application Design
+<p align="center">
+<img src="https://user-images.githubusercontent.com/129342767/229957140-c46cc804-19f8-4cfa-bbab-baed59cb9eb2.png" width="600" />
+</p>
+
 ## Loads:
 - 10 mins presentation
 - 8 slides
 - 8-10 pages of report
 
-## Suggested Sections
+## Delivery
 - Introduction
 - Dataset
 - Persisted Data Model and Datastores
@@ -27,3 +31,9 @@
   - What did you learn from the project?
 - References
 - List what each team member did for the project.
+
+## Part of the project
+- relational datastore
+- non-relational datastore
+- cache
+- search application
