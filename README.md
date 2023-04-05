@@ -34,8 +34,9 @@
 <img src="https://user-images.githubusercontent.com/129342767/229957140-c46cc804-19f8-4cfa-bbab-baed59cb9eb2.png" width="600" />
 </p>
 
-> Goal: Efficiently store the data for fast access.
+> Goal: Efficiently store the data for fast access.  
 
+### 4 Parts of the Projects  
  - Datastores  
  store the information in the tweets in at least 2 datastores.
    - relational datastore
