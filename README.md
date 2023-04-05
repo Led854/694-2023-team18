@@ -1,7 +1,4 @@
 # Datastores & Search Application Design
-<p align="center">
-<img src="https://user-images.githubusercontent.com/129342767/229957140-c46cc804-19f8-4cfa-bbab-baed59cb9eb2.png" width="600" />
-</p>
 
 ## Loads:
 - 10 mins presentation
@@ -32,8 +29,18 @@
 - References
 - List what each team member did for the project.
 
-## Part of the project
-- relational datastore
-- non-relational datastore
-- cache
-- search application
+## Structure
+<p align="center">
+<img src="https://user-images.githubusercontent.com/129342767/229957140-c46cc804-19f8-4cfa-bbab-baed59cb9eb2.png" width="600" />
+</p>
+
+> Goal: Efficiently store the data for fast access.
+
+ - Datastores  
+ store the information in the tweets in at least 2 datastores.
+   - relational datastore
+   - non-relational datastore
+ - Cache  
+Design and implement a cache for storing "popular" (frequently accessed) data.
+ - Search Application  
+Design a search application for your tweet store. You must provide several options such as search by string, hashtag,  and user at the minimum.
