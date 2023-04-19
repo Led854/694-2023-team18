@@ -38,14 +38,48 @@
 [Redis vs Memcached: which one to pick? (imaginarycloud.com)](https://www.imaginarycloud.com/blog/redis-vs-memcached/)
 [Memcached vs Redis | Baeldung](https://www.baeldung.com/memcached-vs-redis)
 
-### 2. cache structure
-- dictionary
+### 2. Attributes Structure Understand
+- there are several types of tweets
+	- original 
+	- reply
+	- quote
+	- retweet
+- Attributes Structure
+	-  \# of fundamental attributes: 28
+	- optional attributes
+		- retweets can be distinguished from typical Tweets by the existence of a `retweeted_status` attribute.
+		- `display_text_range` & **`extended_tweet`** when `truncated` is True
+		- `quoted_status_id` & `quoted_status_id_str` when the Tweet is a quote Tweet
+	- Main objects
+		- Parent object
+			- Tweet
+				- Tweets are the basic atomic building block of all things Twitter. Tweets are also known as “status updates.”
+		- Child objects
+			- User
+				- User objects can be retrieved using the `id` or `screen_name`.
+				- The User object contains Twitter User account metadata that describes the Twitter User referenced.
+					- e.g. In case of Retweets and Quoted Tweets
+						- the top-level `user` object represents what account took that action
+						- the JSON payload will include a second `user` within the `retweeted_status` for the account that created the original Tweet.
+				- In general these `user` metadata values are relatively constant.
+			- Entities
+				- Entities provide metadata and additional contextual information about content posted on Twitter.
+			- Extended entities
+				- If a Tweet contains native media (shared with the Tweet user-interface as opposed via a link to elsewhere), there will also be a extended_entities section.
+				- When it comes to any native media (photo, video, or GIF), the extended_entities is the preferred metadata source.
+				- For all Tweets with more than one photo, a video, or animated GIF, the reader is directed to the `extended_entities` section.
 
-### 3. cache content
+[Tweet object | Docs | Twitter Developer Platform](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/object-model/tweet)  
+[Extended entities object | Docs | Twitter Developer Platform](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/object-model/extended-entities)
+
+### 3. Schema Design
+see highlight part of `twitter_data_dictionary.xlsx` file.
+
+### 4. cache content
 - "popular" by user/hashtags
 - SCD (slowly changing dimension)
 
-### 4. invalid strategy - eviction policies
+### 5. invalid strategy - eviction policies
 - use some of the eviction policies redis supports
 	- volatile-ttl
 	- allkeys-lfu
@@ -55,8 +89,8 @@
 	- slowly changing dimension: when changed
 	- updated data
 
-### 5. other optimization
-### 6. evaluation
+### 6. other optimization
+### 7. evaluation
 
 ## Practice
 - Redis installation
