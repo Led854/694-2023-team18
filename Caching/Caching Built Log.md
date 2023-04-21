@@ -2,8 +2,8 @@
 - I/O operations (querying databases, network services)
 
 ## Cache framework selection
-### 1. cache tool & storage location
-- Memcached `pymemchache` vs. ==Redis==
+### 1. Cache tool: Redis
+- Memcached vs. Redis
 	- both are
 		- NoSQL key-value in-memory data storage systems
 		- Open source
@@ -31,12 +31,12 @@
 
 [[Redis-vs-Memcached-Infographic-ScaleGrid-Blog.pdf]]
 
-[Difference between Redis and Memcached - GeeksforGeeks](https://www.geeksforgeeks.org/difference-between-redis-and-memcached/)
-[Redis Vs Memcached - 2021 Comparison, Features](https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/)
-[caching - If redis is already a part of the stack, why is Memcached still used alongside Redis? - Stack Overflow](https://stackoverflow.com/questions/23601622/if-redis-is-already-a-part-of-the-stack-why-is-memcached-still-used-alongside-r/23650189#23650189)
-[caching - Memcached vs. Redis? - Stack Overflow](https://stackoverflow.com/questions/10558465/memcached-vs-redis)
-[Redis vs Memcached: which one to pick? (imaginarycloud.com)](https://www.imaginarycloud.com/blog/redis-vs-memcached/)
-[Memcached vs Redis | Baeldung](https://www.baeldung.com/memcached-vs-redis)
+[Difference between Redis and Memcached - GeeksforGeeks](https://www.geeksforgeeks.org/difference-between-redis-and-memcached/)  
+[Redis Vs Memcached - 2021 Comparison, Features](https://scalegrid.io/blog/redis-vs-memcached-2021-comparison/)  
+[caching - If redis is already a part of the stack, why is Memcached still used alongside Redis? - Stack Overflow](https://stackoverflow.com/questions/23601622/if-redis-is-already-a-part-of-the-stack-why-is-memcached-still-used-alongside-r/23650189#23650189)  
+[caching - Memcached vs. Redis? - Stack Overflow](https://stackoverflow.com/questions/10558465/memcached-vs-redis)  
+[Redis vs Memcached: which one to pick? (imaginarycloud.com)](https://www.imaginarycloud.com/blog/redis-vs-memcached/)  
+[Memcached vs Redis | Baeldung](https://www.baeldung.com/memcached-vs-redis)  
 
 ### 2. Attributes Structure Understand
 - there are several types of tweets
@@ -73,29 +73,39 @@
 [Extended entities object | Docs | Twitter Developer Platform](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/object-model/extended-entities)
 
 ### 3. Schema Design
-see highlight part of `twitter_data_dictionary.xlsx` file.
+See the highlight part of `twitter_data_dictionary.xlsx` file.
 
-### 4. cache content
-- "popular" by user/hashtags
-- SCD (slowly changing dimension)
+### 4. Data Store using Redis OM
 
-### 5. invalid strategy - eviction policies
-- use some of the eviction policies redis supports
-	- volatile-ttl
-	- allkeys-lfu
-- set a time for invalidation
-	- for those time-sensitive data
-- invalidate it when you want
-	- slowly changing dimension: when changed
-	- updated data
+- Build JsonModel with Redis OM
+  - Considering that there may be nested model, such as `User` being the next level of `Tweet`, use `JsonModel` and `EmbeddedJsonModel` here rather than using `HashModel`.
+  - Set second indexing for searching by various attributes.
+    - `index = True` in `JsonModel`.
 
-### 6. other optimization
-### 7. evaluation
+- Set TTL for 1 day (24\*3600) in general.
+
+[redis-om-python/models and fields (github.com)](https://github.com/redis/redis-om-python/blob/main/docs/models.md)
+
+[Redis OM Python with Flask | Redis](https://redis.io/docs/stack/get-started/tutorials/stack-python/)
+
+### 5. Optimization
+- cache content
+	- "popular" by user/hashtags
+	- SCD (slowly changing dimension)
+- invalid strategy - eviction policies
+	- use some of the eviction policies redis supports
+		- volatile-ttl
+		- allkeys-lfu
+	- invalidate it when changed
+		- slowly changing dimension
+		- updated data
+
+### 6. evaluation
 
 ## Practice
 - Redis installation
 	- Install Redis on macOS
-		```
+		```bash
 	  # install Redis on the system
 	  brew install redis 
 	  
@@ -112,25 +122,35 @@ see highlight part of `twitter_data_dictionary.xlsx` file.
 	  
 	  # open the Reids REPL
 	  redis-cli
-	   ```
-	- Connect Python to a Redis database
-		```
-		# install redis-py
-		pip install redis
+	  ```
+	- Redisearch Installation via Docker
+		```dockerfile
+		# via Docker
+		% docker run -d --name redis-stack-server -p 6379:6379
+		redis/redis-stack-server:latest
 		
-		# connect
-		r = redis.Redis(host='localhost', port=6379,
-		decode_responses=True)
+		# check if it's installed
+		% redis-cli
+		module list
 		```
-- Redisearch Installation
-	```
-	# via Docker
-	% docker run -d --name redis-stack-server -p 6379:6379
-	redis/redis-stack-server:latest
 	
-	# check if it's installed
-	% redis-cli
-	module list
+	- Connect Python to a Redis database
+	
+	  ```python
+	  # install redis-py
+	  pip install redis
+	  
+	  # connect
+	  r = redis.Redis(host='localhost', port=6379,
+	  decode_responses=True)
+	  ```
+- Redis Start & Shut down via Docker
+	```dockerfile
+	# start a redis via docker
+	docker run -p 6379:6379 -it redis/redis-stack:latest
+	
+	# Shut down via docker
+	docker-compose down
 	```
 	- [RediSearch quick start](https://redis.io/docs/stack/search/quick_start/)
 	- [Run Redis Stack on Docker](https://redis.io/docs/stack/get-started/install/docker/)
@@ -146,3 +166,19 @@ see highlight part of `twitter_data_dictionary.xlsx` file.
 - Cannot use command like `FT.CREATE` in Python 
 	- is from `RediSearch` module
 	- need to install RediSearch module in Redis Server
+	
+- Multiple connected Clients
+	- config timeout to remove idle clients.
+	
+	  `config set time out 3600`
+	
+- Index setting are not in effect when building an embedded sub-model twt_user with Redis OM
+
+  - add the below to schema class and run `Migrator().run()` after saving data into Redis.
+  - `class Meta:
+            database = get_redis_connection()`
+
+- Cannot import some package after install it 
+  - `pip show packagename` to provide the location of the installed package
+  - `import sys; sys.path` to show where Python searches for any packages imported.
+  - `sys.path.append('package_location_seen_in_step_1')` 
