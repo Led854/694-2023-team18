@@ -1,8 +1,9 @@
-## Goal Define
-- I/O operations (querying databases, network services)
+## Intro
+- Caching is a crucial component of the layered architecture of the search application, typically used to improve user experience by reducing waiting time, and reducing server workload.
+- Goal Define: I/O operations (querying databases, network services)
 
 ## Cache framework selection
-### 1. Cache tool: Redis
+### 1. Redis as Cache
 - Memcached vs. Redis
 	- both are
 		- NoSQL key-value in-memory data storage systems
@@ -12,7 +13,7 @@
 	- selection
 		- Redis outperforms Memcached by offering richer functionality and various features that are promising for complex use-cases.
 			- data structure; secondary database model; different types of eviction policies.
-			- in case to add information like images or geographic location information to the cache.
+			- in case to add attributes like images or geographic location to the cache.
 
 |          Parameter           |                                                 REDIS                                                 |                      MEMCACHED                      |
 |:----------------------------:|:-----------------------------------------------------------------------------------------------------:|:---------------------------------------------------:|
@@ -38,8 +39,23 @@
 [Redis vs Memcached: which one to pick? (imaginarycloud.com)](https://www.imaginarycloud.com/blog/redis-vs-memcached/)  
 [Memcached vs Redis | Baeldung](https://www.baeldung.com/memcached-vs-redis)  
 
-### 2. Attributes Structure Understand
-- there are several types of tweets
+### 2. Cache-Aside Pattern as Cache Mode
+The cache contains only data that the application requests, which helps keep the cache size cost-effective.   
+However, some overhead is added to the initial response time because additional roundtrips to the cache and database are needed.
+
+- The reading procedure is showed as below:
+
+  <img src="https://yunpengn.github.io/blog/images/cache_aside_1.png" alt="img" style="zoom:90%;" />
+
+- The order for writing is swapped based on the default process (attached below) in this project for better consistency. Nevertheless, this order may lead old data into the cache. 
+
+  <img src="https://yunpengn.github.io/blog/images/cache_aside_2.png" alt="img" style="zoom:90%;" />
+
+[Consistency between Redis Cache and SQL Database | Yunpeng's Blog (yunpengn.github.io)](https://yunpengn.github.io/blog/2019/05/04/consistent-redis-sql/)
+
+### 3. Attributes Structure Exploration
+
+- There are several types of tweets
 	- original 
 	- reply
 	- quote
@@ -48,47 +64,53 @@
 	-  \# of fundamental attributes: 28
 	- optional attributes
 		- retweets can be distinguished from typical Tweets by the existence of a `retweeted_status` attribute.
-		- `display_text_range` & **`extended_tweet`** when `truncated` is True
-		- `quoted_status_id` & `quoted_status_id_str` when the Tweet is a quote Tweet
+		- `display_text_range` & **`extended_tweet`** when `truncated` is True.
+		- `quoted_status_id` & `quoted_status_id_str` when the Tweet is a quote Tweet.
 	- Main objects
 		- Parent object
 			- Tweet
-				- Tweets are the basic atomic building block of all things Twitter. Tweets are also known as “status updates.”
+				- Tweets are the basic atomic building block of all things Twitter. Tweets are also known as “status updates”.
 		- Child objects
 			- User
 				- User objects can be retrieved using the `id` or `screen_name`.
 				- The User object contains Twitter User account metadata that describes the Twitter User referenced.
 					- e.g. In case of Retweets and Quoted Tweets
-						- the top-level `user` object represents what account took that action
+						- the top-level `user` object represents what account took that action.
 						- the JSON payload will include a second `user` within the `retweeted_status` for the account that created the original Tweet.
 				- In general these `user` metadata values are relatively constant.
 			- Entities
 				- Entities provide metadata and additional contextual information about content posted on Twitter.
 			- Extended entities
+				- When it comes to any native media (photo, video, or GIF), the extended_entities is the preferred metadata source.
 				- If a Tweet contains native media (shared with the Tweet user-interface as opposed via a link to elsewhere), there will also be a extended_entities section.
-				- When it comes to any native media (photo, video, or GIF), the extended_entities is the preferred metadata source.
 				- For all Tweets with more than one photo, a video, or animated GIF, the reader is directed to the `extended_entities` section.
 
 [Tweet object | Docs | Twitter Developer Platform](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/object-model/tweet)  
 [Extended entities object | Docs | Twitter Developer Platform](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/object-model/extended-entities)
 
-### 3. Schema Design
+### 4. Schema Design
 See the highlight part of `twitter_data_dictionary.xlsx` file.
 
-### 4. Data Store using Redis OM
+### 5. Data Store using Redis OM for Python
 
-- Build JsonModel with Redis OM
-  - Considering that there may be nested model, such as `User` being the next level of `Tweet`, use `JsonModel` and `EmbeddedJsonModel` here rather than using `HashModel`.
-  - Set second indexing for searching by various attributes.
-    - `index = True` in `JsonModel`.
+- [Redis OM Python](https://github.com/redis/redis-om-python) is a Redis client that provides high-level abstractions for managing document data in Redis.
 
-- Set TTL for 1 day (24\*3600) in general.
+- Build JsonModel class with Redis OM
+  - Considering that there are nested structures, such as `user` object and `entities` object being the next level of `tweet` object, use `JsonModel` and `EmbeddedJsonModel` here rather than `HashModel`.
+  - Set second indexing for searching by various attributes
+    - `index = True` in `JsonModel`
+    - Basically, set `id_str`, `user.id_str`, `user.screen_name`, `entities.hashtags.text`, `user.followers_count`, `text`, `created_at` as indicies to support searches by string, user and hashtag.
+- Set TTL for 1 day (24\*3600) in general to handle stale data.
+
+[redis-om-python/getting_started.md at main · redis/redis-om-python (github.com)](https://github.com/redis/redis-om-python/blob/main/docs/getting_started.md)
+
+[Introducing Redis OM For Python | Redis](https://redis.com/blog/introducing-redis-om-for-python/)
 
 [redis-om-python/models and fields (github.com)](https://github.com/redis/redis-om-python/blob/main/docs/models.md)
 
 [Redis OM Python with Flask | Redis](https://redis.io/docs/stack/get-started/tutorials/stack-python/)
 
-### 5. Optimization
+### 6. Optimization
 - cache content
 	- "popular" by user/hashtags
 	- SCD (slowly changing dimension)
@@ -100,7 +122,7 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
 		- slowly changing dimension
 		- updated data
 
-### 6. evaluation
+### 7. Evaluation
 
 ## Practice
 - Redis installation
@@ -123,7 +145,7 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
 	  # open the Reids REPL
 	  redis-cli
 	  ```
-	- Redisearch Installation via Docker
+	- Redisearch Installation via Docker (the redis-stack Docker image)
 		```dockerfile
 		# via Docker
 		% docker run -d --name redis-stack-server -p 6379:6379
@@ -162,23 +184,24 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
 	- [Command Reference](https://redis-py.readthedocs.io/en/stable/commands.html)
 	- [Tutorials](https://redis.readthedocs.io/en/stable/examples.html)
 
-## Issue Resolution Log
+## Troubleshooting Log
 - Cannot use command like `FT.CREATE` in Python 
-	- is from `RediSearch` module
-	- need to install RediSearch module in Redis Server
+	- is from `RediSearch` module;
+	- need to install RediSearch module in Redis Server.
 	
 - Multiple connected Clients
 	- config timeout to remove idle clients.
 	
 	  `config set time out 3600`
 	
-- Index setting are not in effect when building an embedded sub-model twt_user with Redis OM
+- Index setting are not in effect when building an embedded sub-model `twt_user` with Redis OM
 
-  - add the below to schema class and run `Migrator().run()` after saving data into Redis.
+  - add the below to the schema class and run `Migrator().run()` after saving data into Redis.
   - `class Meta:
             database = get_redis_connection()`
+  - Ref: [Redis OM (Python) issues - Redis client libraries (Java, Python, JS, etc.) - Redis Community Forum](https://forum.redis.com/t/redis-om-python-issues/1639)
 
-- Cannot import some package after install it 
-  - `pip show packagename` to provide the location of the installed package
-  - `import sys; sys.path` to show where Python searches for any packages imported.
-  - `sys.path.append('package_location_seen_in_step_1')` 
+- Cannot import some package after installation 
+  - `pip show packagename` to provide the location of the installed package;
+  - `import sys; sys.path` to show where Python searches for any packages imported;
+  - `sys.path.append('package_location_seen_in_step_1')` .
