@@ -1,6 +1,6 @@
 # Datastores & Search Application Design
 
-## Loads:
+## Loads
 - 10 mins presentation
 - 8 slides
 - 8-10 pages of report
