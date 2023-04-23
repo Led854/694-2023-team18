@@ -5,7 +5,7 @@
 - 8 slides
 - 8-10 pages of report
 
-## Delivery
+## Deliver
 - Introduction
 - Dataset
 - Persisted Data Model and Datastores
