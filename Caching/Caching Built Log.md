@@ -148,14 +148,13 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
 	- Redisearch Installation via Docker (the redis-stack Docker image)
 		```dockerfile
 		# via Docker
-		% docker run -d --name redis-stack-server -p 6379:6379
-		redis/redis-stack-server:latest
+		% docker run -d --name redis-stack-server -p 6379:6379 redis/redis-stack-server:latest
 		
 		# check if it's installed
 		% redis-cli
 		module list
 		```
-	
+		
 	- Connect Python to a Redis database
 	
 	  ```python
@@ -229,4 +228,8 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
   - IP:8001 -> redisinsight
   - Ref: [php - How to set password for Redis? - Stack Overflow](https://stackoverflow.com/questions/7537905/how-to-set-password-for-redis)
   
-  
+- `redis-cli -h 172.31.139.108 -p 6379 -a 7ptbtptp`
+
+- `auth 7ptbtptp` to query data
+- `ping` testing connnection
+- Config redis to accept外部连接
