@@ -168,14 +168,26 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
 	  ```
 - Redis Start & Shut down via Docker
 	```dockerfile
-	# start a redis via docker
+	# 1. Start a redis via docker & enter redis-cli
 	docker run -p 6379:6379 -it redis/redis-stack:latest
 	
-	# Shut down via docker
+	# or start a redis server
+	docer run -d --name redis-stack-server -p 6379:6379 redis/redis-stack-server:latest
+	# 2. or start the whole redis-stack (along with redisinsight)
+	docker run -d --name redis-stack -p 6379:6379 -p 8001:8001 redis/redis-stack:latest # 8001 for redisinsight
+	# 3. Enter redis-cli
+	docker exec -it redis-stack redis-cli
+	# 127.0.0.1:6379 # connect by another device
+	
+	# 4. check status
+	docker ps
+	
+	# 5. Shut down via docker
 	docker-compose down
 	```
 	- [RediSearch quick start](https://redis.io/docs/stack/search/quick_start/)
 	- [Run Redis Stack on Docker](https://redis.io/docs/stack/get-started/install/docker/)
+	- [Add a Redis database | Redis Documentation Center](https://docs.redis.com/latest/ri/using-redisinsight/add-instance/)
 
 ## References
 - `redis-py`
@@ -205,3 +217,16 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
   - `pip show packagename` to provide the location of the installed package;
   - `import sys; sys.path` to show where Python searches for any packages imported;
   - `sys.path.append('package_location_seen_in_step_1')` .
+  
+- set localhost Redis data can be visited by another device
+  
+  - set password 
+    - `redis 127.0.0.1:6379> CONFIG SET requirepass "7ptbtptp"`
+    - `redis 127.0.0.1:6379> AUTH 7ptbtptp`
+  - How to connect to a Redis Database
+    - 
+  - `ifcofig` to get IP address
+  - IP:8001 -> redisinsight
+  - Ref: [php - How to set password for Redis? - Stack Overflow](https://stackoverflow.com/questions/7537905/how-to-set-password-for-redis)
+  
+  
