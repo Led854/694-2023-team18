@@ -100,27 +100,35 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
   - Set second indexing for searching by various attributes
     - `index = True` in `JsonModel`
     - Basically, set `id_str`, `user.id_str`, `user.screen_name`, `entities.hashtags.text`, `user.followers_count`, `text`, `created_at` as indicies to support searches by string, user and hashtag.
-- Set TTL for 1 day (24\*3600) in general to handle stale data.
+- Eviction policy setting
+  - Set TTL for 1 day (24\*3600) in general to handle stale data.
+  - Set the maxmemory to 50MB, which is approximately 20,000 entries.
+  - Set the eviciton policy as `volatile-lfu`, which evicts the least frequently used keys from those that have a TTL set
+    - let the searches itself decide what are the popular contents.
 
-[redis-om-python/getting_started.md at main · redis/redis-om-python (github.com)](https://github.com/redis/redis-om-python/blob/main/docs/getting_started.md)
 
-[Introducing Redis OM For Python | Redis](https://redis.com/blog/introducing-redis-om-for-python/)
+[redis-om-python/getting_started.md at main · redis/redis-om-python (github.com)](https://github.com/redis/redis-om-python/blob/main/docs/getting_started.md)	
+
+[Introducing Redis OM For Python | Redis](https://redis.com/blog/introducing-redis-om-for-python/)	
 
 [redis-om-python/models and fields (github.com)](https://github.com/redis/redis-om-python/blob/main/docs/models.md)
 
 [Redis OM Python with Flask | Redis](https://redis.io/docs/stack/get-started/tutorials/stack-python/)
 
+[Redis OM (Python) issues - Redis client libraries (Java, Python, JS, etc.) - Redis Community Forum](https://forum.redis.com/t/redis-om-python-issues/1639)
+
+- Querying for Models With Expressions
+  - [redis-developer/redis-om-python-flask-skeleton-app: A starter application for performing CRUD type operations with Redis OM Python and the Flask Microframework (github.com)](https://github.com/redis-developer/redis-om-python-flask-skeleton-app#find-a-person-by-id)
+  - [Redis OM Python | Redis](https://redis.io/docs/stack/get-started/tutorials/stack-python/#start-the-flask-application)
+
 ### 6. Optimization
-- cache content
+- initial cache content - later
 	- "popular" by user/hashtags
 	- SCD (slowly changing dimension)
 - invalid strategy - eviction policies
-	- use some of the eviction policies redis supports
-		- volatile-ttl
-		- allkeys-lfu
 	- invalidate it when changed
-		- slowly changing dimension
-		- updated data
+	  - slowly changing dimension
+	  - updated data
 
 ### 7. Evaluation
 
@@ -217,19 +225,24 @@ See the highlight part of `twitter_data_dictionary.xlsx` file.
   - `import sys; sys.path` to show where Python searches for any packages imported;
   - `sys.path.append('package_location_seen_in_step_1')` .
   
-- set localhost Redis data can be visited by another device
+- Cannot push to the repo using username and password
   
+  - need to generate token and use username and token to push
+  
+  - [git - Support for password authentication was removed on August 13, 2021 - Stack Overflow](https://stackoverflow.com/questions/68781928/support-for-password-authentication-was-removed-on-august-13-2021)
+  
+- Set localhost Redis data can be visited by another device
+
   - set password 
     - `redis 127.0.0.1:6379> CONFIG SET requirepass "7ptbtptp"`
     - `redis 127.0.0.1:6379> AUTH 7ptbtptp`
-  - How to connect to a Redis Database
-    - 
-  - `ifcofig` to get IP address
-  - IP:8001 -> redisinsight
-  - Ref: [php - How to set password for Redis? - Stack Overflow](https://stackoverflow.com/questions/7537905/how-to-set-password-for-redis)
-  
-- `redis-cli -h 172.31.139.108 -p 6379 -a 7ptbtptp`
+    - Ref: [php - How to set password for Redis? - Stack Overflow](https://stackoverflow.com/questions/7537905/how-to-set-password-for-redis)
+  - `/usr/local/etc/redis.conf` to revise the bind command
+    - `bind 127.0.0.1` -> `bind IPaddress`
 
-- `auth 7ptbtptp` to query data
-- `ping` testing connnection
-- Config redis to accept外部连接
+  - How to connect to a Redis Database
+    - `redis-cli -h 172.31.139.108 -p 6379 -a 7ptbtptp`
+      - `ifcofig` to get IP address
+    - `auth 7ptbtptp` to query data
+    - `ping` testing connnection
+    - Ref: [How To Connect to a Redis Database | DigitalOcean](https://www.digitalocean.com/community/cheatsheets/how-to-connect-to-a-redis-database)
