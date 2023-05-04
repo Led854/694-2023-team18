@@ -66,9 +66,6 @@ def search():
         # mongodb
         userid_str = uer["userid_str"].tolist()
         myquery["user.id_str"] = {"$in": userid_str}
-    else:
-        cur.execute("SELECT userid_str, screen_name, name, favourites_count FROM users;")
-        uer = pd.DataFrame(cur.fetchall(), columns=["userid_str", "screen_name", "name", "favourites_count"])
     if search_keyword != "":
         myquery["$text"] = {"$search": search_keyword}
     if search_hashtag != "":
@@ -80,9 +77,34 @@ def search():
         myquery['created_at'] = {'$gte': start_at}
     elif end_at != "":
         myquery['created_at'] = {'$lte': end_at}
-    twts = tweets.find(myquery).sort([("favorite_count", pymongo.DESCENDING), ("retweet_count", pymongo.DESCENDING)]).limit(10)
+    twts = tweets.find(myquery)
 
-    testItems=twts
+    # get users' information
+    def get_user_info(user_id):
+        cur.execute("SELECT * FROM users WHERE userid_str = %s;",
+                    (user_id,))
+        user_info = cur.fetchone()
+        if user_info is not None:
+            return {
+                "userid_str": user_info[0],
+                "screen_name": user_info[1],
+                "name": user_info[2],
+                "followers_count": user_info[3],
+                "favourites_count": user_info[4],
+                "statuses_count": user_info[5]
+            }
+        return None
+
+    testItems = []
+    for tweet in twts:
+        tweet_user_id = tweet["user"]["id_str"]
+        user_info = get_user_info(tweet_user_id)
+        if user_info is not None:
+            tweet["user_info"] = user_info
+        testItems.append(tweet)
+
+    testItems = sorted(testItems, key=lambda x: (x['user_info']['followers_count'], x['user_info']['favourites_count']), reverse=True)
+    testItems = testItems[:5]
 
     responeData = {
         "search_keyword": search_keyword,
