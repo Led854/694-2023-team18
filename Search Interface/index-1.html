@@ -19,22 +19,28 @@
         <input type="submit" value="submit" />
 
         <table>
-            <tr><td>author</td><td>creat_at</td><td>retweet_count</td><td>favourite_count</td><td>hashtag</td><td>content</td></tr>
+            <tr><td>author</td><td>content</td><td>creat_at</td><td>retweet_count</td><td>favourite_count</td><td>hashtag</td></tr>
             {% for item in testItems %}
             <tr>
                 <td>
-                    <a href="#" onclick='dialogPop({{loop.index}})'>{{item.user.id_str}}</a>
+                    <a href="#" onclick='dialogPop({{loop.index}})'>{{item.user_info.screen_name}}</a>
                     <div style="position:absolute;top:0;left:0; right: 0; bottom: 0; background-color:darkgray;opacity: 0.5;display: none;" onclick='dialogNone({{loop.index}})'
                          id="pop{{loop.index}}">
-                        <table style="margin-top: 20%; margin-left: 40%;">
-                            <tr><td>userid_str</td><td>screen_name</td><td>name</td><td>favourites_count</td></tr>
-                            {% for itemD in item.user %}
-                            <tr><td>{{itemD.id_str}}</td><td>{{itemD.screen_name}}</td><td>{{itemD.name}}</td><td>{{favourites_count}}</td></tr>
-                            {% endfor %}
-                        </table>
+                    <table style="margin-top: 20%; margin-left: 40%;">
+                        <tr><td>userid_str</td><td>screen_name</td><td>name</td><td>followers_count</td><td>favourites_count</td><td>statuses_count</td></tr>
+                        <tr>
+                            <td>{{item.user_info.userid_str}}</td>
+                            <td>{{item.user_info.screen_name}}</td>
+                            <td>{{item.user_info.name}}</td>
+                            <td>{{item.user_info.followers_count}}</td>
+                            <td>{{item.user_info.favourites_count}}</td>
+                            <td>{{item.user_info.statuses_count}}</td>
+                        </tr>
+                     </table>
                     </div>
                 </td>
-                <td>{{item.creat_at }}</td>
+                <td>{{item.text}}</td>
+                <td>{{item.created_at}}</td>
                 <td>{{item.retweet_count}}</td>
                 <td>{{item.favorite_count}}</td>
                 <td>
@@ -42,8 +48,6 @@
                     {{ hashtag.text }}
                     {% endfor %}
                 </td>
-                <td>{{item.text}}</td>
-                <td>{{item.retweet}}</td>
             </tr>
             {% endfor %}
         </table>
